@@ -71,7 +71,9 @@ function transformItemToTask(item: ProjectV2Item): Task | null {
 
   // Extract field values
   const status = getFieldValue(fieldValueNodes, 'Status');
-  const dueDate = getFieldValue(fieldValueNodes, 'Production ETA') ||
+  const priority = getFieldValue(fieldValueNodes, 'Priority');
+  const dueDate = getFieldValue(fieldValueNodes, 'First Tech Handoff ETA Date') ||
+                  getFieldValue(fieldValueNodes, 'Production ETA') ||
                   getFieldValue(fieldValueNodes, 'Due Date') ||
                   getFieldValue(fieldValueNodes, 'Due') ||
                   getFieldValue(fieldValueNodes, 'DueDate');
@@ -98,6 +100,7 @@ function transformItemToTask(item: ProjectV2Item): Task | null {
     status,
     repository: content.repository.nameWithOwner,
     assignees,
+    priority,
     createdAt: new Date(content.createdAt),
     updatedAt: new Date(content.updatedAt),
     dueDate: dueDate ? new Date(dueDate) : null,

@@ -10,9 +10,10 @@ export interface Task {
   status: string | null; // Project status field (e.g., "In Progress", "Done")
   repository: string | null;
   assignees: string[]; // Array of GitHub usernames
+  priority: string | null; // Priority field (e.g., "P0", "P1", "P2")
   createdAt: Date;
   updatedAt: Date;
-  dueDate: Date | null;
+  dueDate: Date | null; // This is the First Tech Handoff ETA Date field from GitHub
   addedToProjectAt: Date | null;
 }
 
@@ -22,6 +23,24 @@ export interface TaskStats {
   closed: number;
   overdue: number;
   overdueList: Task[];
+  noTechHandoffETA: number;
+  noTechHandoffETAList: Task[];
+  noTechHandoffETAByPriority: {
+    p0: number;
+    p1: number;
+    noPriority: number;
+    p0List: Task[];
+    p1List: Task[];
+    noPriorityList: Task[];
+  };
+  unassignedByPriority: {
+    p0: number;
+    p1: number;
+    noPriority: number;
+    p0List: Task[];
+    p1List: Task[];
+    noPriorityList: Task[];
+  };
 }
 
 export interface TaskSnapshot {

@@ -43,12 +43,62 @@ export class TaskProcessorService {
     const overdueList = tasks.filter((t) => this.isOverdue(t));
     const overdue = overdueList.length;
 
+    // Tasks without First Tech Handoff ETA Date (only count open tasks)
+    const noTechHandoffETAList = tasks.filter(
+      (t) => t.state === 'OPEN' && !t.dueDate
+    );
+    const noTechHandoffETA = noTechHandoffETAList.length;
+
+    // No First Tech Handoff ETA Date by priority
+    const noETAP0List = noTechHandoffETAList.filter(
+      (t) => t.priority?.toUpperCase() === 'P0'
+    );
+    const noETAP1List = noTechHandoffETAList.filter(
+      (t) => t.priority?.toUpperCase() === 'P1'
+    );
+    const noETANoPriorityList = noTechHandoffETAList.filter(
+      (t) => !t.priority || (t.priority.toUpperCase() !== 'P0' && t.priority.toUpperCase() !== 'P1')
+    );
+
+    // Unassigned tasks by priority (only count open tasks)
+    const unassignedTasks = tasks.filter(
+      (t) => t.state === 'OPEN' && t.assignees.length === 0
+    );
+
+    const p0List = unassignedTasks.filter(
+      (t) => t.priority?.toUpperCase() === 'P0'
+    );
+    const p1List = unassignedTasks.filter(
+      (t) => t.priority?.toUpperCase() === 'P1'
+    );
+    const noPriorityList = unassignedTasks.filter(
+      (t) => !t.priority || (t.priority.toUpperCase() !== 'P0' && t.priority.toUpperCase() !== 'P1')
+    );
+
     return {
       total,
       open,
       closed,
       overdue,
       overdueList,
+      noTechHandoffETA,
+      noTechHandoffETAList,
+      noTechHandoffETAByPriority: {
+        p0: noETAP0List.length,
+        p1: noETAP1List.length,
+        noPriority: noETANoPriorityList.length,
+        p0List: noETAP0List,
+        p1List: noETAP1List,
+        noPriorityList: noETANoPriorityList,
+      },
+      unassignedByPriority: {
+        p0: p0List.length,
+        p1: p1List.length,
+        noPriority: noPriorityList.length,
+        p0List,
+        p1List,
+        noPriorityList,
+      },
     };
   }
 

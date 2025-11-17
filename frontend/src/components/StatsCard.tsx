@@ -4,7 +4,7 @@ interface StatsCardProps {
   title: string;
   value: number;
   label: string;
-  type: 'total' | 'open' | 'closed' | 'overdue';
+  type: 'total' | 'open' | 'closed' | 'overdue' | 'warning' | 'critical' | 'info';
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({ title, value, label, type }) => {

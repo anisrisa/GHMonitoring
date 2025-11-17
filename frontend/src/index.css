@@ -85,6 +85,9 @@ body {
 .stat-card.open .stat-value { color: var(--warning-color); }
 .stat-card.closed .stat-value { color: var(--success-color); }
 .stat-card.overdue .stat-value { color: var(--danger-color); }
+.stat-card.warning .stat-value { color: var(--warning-color); }
+.stat-card.critical .stat-value { color: var(--danger-color); }
+.stat-card.info .stat-value { color: var(--text-secondary); }
 
 .card {
   background: var(--card-bg);

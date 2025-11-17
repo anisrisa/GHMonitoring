@@ -11,14 +11,15 @@ export class TaskRepository {
   async upsertTask(task: Task): Promise<void> {
     const sql = `
       INSERT INTO tasks (
-        github_id, project_item_id, title, number, type, state, status,
+        github_id, project_item_id, title, number, type, state, status, priority,
         repository, created_at, updated_at, due_date, added_to_project_at, last_synced_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
       ON CONFLICT (github_id)
       DO UPDATE SET
         title = EXCLUDED.title,
         state = EXCLUDED.state,
         status = EXCLUDED.status,
+        priority = EXCLUDED.priority,
         updated_at = EXCLUDED.updated_at,
         due_date = EXCLUDED.due_date,
         last_synced_at = NOW()
@@ -32,6 +33,7 @@ export class TaskRepository {
       task.type,
       task.state,
       task.status,
+      task.priority,
       task.repository,
       task.createdAt,
       task.updatedAt,
@@ -52,14 +54,15 @@ export class TaskRepository {
       for (const task of tasks) {
         const sql = `
           INSERT INTO tasks (
-            github_id, project_item_id, title, number, type, state, status,
+            github_id, project_item_id, title, number, type, state, status, priority,
             repository, created_at, updated_at, due_date, added_to_project_at, last_synced_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
           ON CONFLICT (github_id)
           DO UPDATE SET
             title = EXCLUDED.title,
             state = EXCLUDED.state,
             status = EXCLUDED.status,
+            priority = EXCLUDED.priority,
             updated_at = EXCLUDED.updated_at,
             due_date = EXCLUDED.due_date,
             last_synced_at = NOW()
@@ -73,6 +76,7 @@ export class TaskRepository {
           task.type,
           task.state,
           task.status,
+          task.priority,
           task.repository,
           task.createdAt,
           task.updatedAt,
@@ -168,6 +172,7 @@ export class TaskRepository {
         type,
         state,
         status,
+        priority,
         repository,
         created_at,
         updated_at,
@@ -187,6 +192,7 @@ export class TaskRepository {
       type: row.type,
       state: row.state,
       status: row.status,
+      priority: row.priority,
       repository: row.repository,
       assignees: [], // Will be populated separately if needed
       createdAt: new Date(row.created_at),
@@ -211,6 +217,7 @@ export class TaskRepository {
         t.type,
         t.state,
         t.status,
+        t.priority,
         t.repository,
         t.created_at,
         t.updated_at,
@@ -223,7 +230,7 @@ export class TaskRepository {
       FROM tasks t
       LEFT JOIN task_assignments ta ON t.id = ta.task_id AND ta.unassigned_at IS NULL
       GROUP BY t.id, t.github_id, t.project_item_id, t.title, t.number, t.type, t.state,
-               t.status, t.repository, t.created_at, t.updated_at, t.due_date, t.added_to_project_at
+               t.status, t.priority, t.repository, t.created_at, t.updated_at, t.due_date, t.added_to_project_at
       ORDER BY t.created_at DESC
     `;
 
@@ -237,6 +244,7 @@ export class TaskRepository {
       type: row.type,
       state: row.state,
       status: row.status,
+      priority: row.priority,
       repository: row.repository,
       assignees: Array.isArray(row.assignees) ? row.assignees : [],
       createdAt: new Date(row.created_at),

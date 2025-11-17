@@ -41,6 +41,17 @@ router.get('/stats', async (req: Request, res: Response) => {
         open: stats.open,
         closed: stats.closed,
         overdue: stats.overdue,
+        noTechHandoffETA: stats.noTechHandoffETA,
+        noTechHandoffETAByPriority: {
+          p0: stats.noTechHandoffETAByPriority.p0,
+          p1: stats.noTechHandoffETAByPriority.p1,
+          noPriority: stats.noTechHandoffETAByPriority.noPriority,
+        },
+        unassignedByPriority: {
+          p0: stats.unassignedByPriority.p0,
+          p1: stats.unassignedByPriority.p1,
+          noPriority: stats.unassignedByPriority.noPriority,
+        },
       },
       breakdown: {
         byRepository: summary.byRepository,
