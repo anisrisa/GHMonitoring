@@ -72,11 +72,8 @@ function transformItemToTask(item: ProjectV2Item): Task | null {
   // Extract field values
   const status = getFieldValue(fieldValueNodes, 'Status');
   const priority = getFieldValue(fieldValueNodes, 'Priority');
-  const dueDate = getFieldValue(fieldValueNodes, 'First Tech Handoff ETA Date') ||
-                  getFieldValue(fieldValueNodes, 'Production ETA') ||
-                  getFieldValue(fieldValueNodes, 'Due Date') ||
-                  getFieldValue(fieldValueNodes, 'Due') ||
-                  getFieldValue(fieldValueNodes, 'DueDate');
+  // Only use First Tech Handoff ETA - no fallbacks to ensure accurate counting
+  const dueDate = getFieldValue(fieldValueNodes, 'First Tech Handoff ETA');
 
   // Extract assignees
   const assignees = content.assignees.nodes.map((a) => a.login);
