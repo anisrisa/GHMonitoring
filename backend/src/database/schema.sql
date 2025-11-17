@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   type VARCHAR(50) NOT NULL CHECK (type IN ('ISSUE', 'PULL_REQUEST', 'DRAFT_ISSUE')),
   state VARCHAR(50) NOT NULL CHECK (state IN ('OPEN', 'CLOSED', 'MERGED')),
   status VARCHAR(100), -- Project status column (e.g., "In Progress", "Done")
+  priority VARCHAR(50), -- Priority field (e.g., "P0", "P1", "P2")
   repository VARCHAR(255),
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
@@ -56,6 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_state ON tasks(state);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_repository ON tasks(repository);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
 CREATE INDEX IF NOT EXISTS idx_task_assignments_task_id ON task_assignments(task_id);
 CREATE INDEX IF NOT EXISTS idx_task_assignments_assignee ON task_assignments(assignee);
 CREATE INDEX IF NOT EXISTS idx_task_snapshots_task_id ON task_snapshots(task_id);

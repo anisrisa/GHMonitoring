@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { StatsCard } from './components/StatsCard';
 import { TasksTable } from './components/TasksTable';
 import { TrendChart } from './components/TrendChart';
@@ -125,32 +125,90 @@ function App() {
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="stats-grid">
-          <StatsCard
-            title="Total Tasks"
-            value={stats.stats.total}
-            label="All tasks in project"
-            type="total"
-          />
-          <StatsCard
-            title="Open Tasks"
-            value={stats.stats.open}
-            label="Currently open"
-            type="open"
-          />
-          <StatsCard
-            title="Closed Tasks"
-            value={stats.stats.closed}
-            label="Completed tasks"
-            type="closed"
-          />
-          <StatsCard
-            title="Overdue Tasks"
-            value={stats.stats.overdue}
-            label="Beyond due date"
-            type="overdue"
-          />
-        </div>
+        <>
+          <div className="stats-grid">
+            <StatsCard
+              title="Total Tasks"
+              value={stats.stats.total}
+              label="All tasks in project"
+              type="total"
+            />
+            <StatsCard
+              title="Open Tasks"
+              value={stats.stats.open}
+              label="Currently open"
+              type="open"
+            />
+            <StatsCard
+              title="Closed Tasks"
+              value={stats.stats.closed}
+              label="Completed tasks"
+              type="closed"
+            />
+            <StatsCard
+              title="Overdue Tasks"
+              value={stats.stats.overdue}
+              label="Beyond due date"
+              type="overdue"
+            />
+            <StatsCard
+              title="No Tech Handoff ETA"
+              value={stats.stats.noTechHandoffETA}
+              label="Open tasks without ETA"
+              type="warning"
+            />
+          </div>
+
+          {/* No Tech Handoff ETA by Priority */}
+          <div className="card" style={{ marginTop: '20px' }}>
+            <h2>No First Tech Handoff ETA Tasks by Priority</h2>
+            <div className="stats-grid">
+              <StatsCard
+                title="P0 No ETA"
+                value={stats.stats.noTechHandoffETAByPriority.p0}
+                label="Critical priority without ETA"
+                type="critical"
+              />
+              <StatsCard
+                title="P1 No ETA"
+                value={stats.stats.noTechHandoffETAByPriority.p1}
+                label="High priority without ETA"
+                type="warning"
+              />
+              <StatsCard
+                title="No Priority No ETA"
+                value={stats.stats.noTechHandoffETAByPriority.noPriority}
+                label="No priority & no ETA"
+                type="info"
+              />
+            </div>
+          </div>
+
+          {/* Unassigned Tasks by Priority */}
+          <div className="card" style={{ marginTop: '20px' }}>
+            <h2>Unassigned Tasks by Priority</h2>
+            <div className="stats-grid">
+              <StatsCard
+                title="P0 Unassigned"
+                value={stats.stats.unassignedByPriority.p0}
+                label="Critical priority"
+                type="critical"
+              />
+              <StatsCard
+                title="P1 Unassigned"
+                value={stats.stats.unassignedByPriority.p1}
+                label="High priority"
+                type="warning"
+              />
+              <StatsCard
+                title="No Priority Unassigned"
+                value={stats.stats.unassignedByPriority.noPriority}
+                label="No priority set"
+                type="info"
+              />
+            </div>
+          </div>
+        </>
       )}
 
       {/* Task Owner Breakdown */}

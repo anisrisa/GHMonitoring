@@ -8,6 +8,7 @@ export interface Task {
   type: 'ISSUE' | 'PULL_REQUEST' | 'DRAFT_ISSUE';
   state: 'OPEN' | 'CLOSED' | 'MERGED';
   status: string | null;
+  priority: string | null;
   repository: string | null;
   assignees: string[];
   createdAt: string;
@@ -21,6 +22,17 @@ export interface TaskStats {
   open: number;
   closed: number;
   overdue: number;
+  noTechHandoffETA: number;
+  noTechHandoffETAByPriority: {
+    p0: number;
+    p1: number;
+    noPriority: number;
+  };
+  unassignedByPriority: {
+    p0: number;
+    p1: number;
+    noPriority: number;
+  };
 }
 
 export interface StatsResponse {

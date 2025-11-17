@@ -12,6 +12,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
   const [filterState, setFilterState] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterRepository, setFilterRepository] = useState<string>('all');
   const [filterAssignee, setFilterAssignee] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -24,14 +25,16 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
   };
 
   // Extract unique values for filters
-  const { repositories, statuses, assignees } = useMemo(() => {
+  const { repositories, statuses, assignees, priorities } = useMemo(() => {
     const repos = new Set<string>();
     const stats = new Set<string>();
     const assigns = new Set<string>();
+    const priors = new Set<string>();
 
     tasks.forEach((task) => {
       if (task.repository) repos.add(task.repository);
       if (task.status) stats.add(task.status);
+      if (task.priority) priors.add(task.priority);
       task.assignees.forEach((a) => assigns.add(a));
     });
 
@@ -39,6 +42,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
       repositories: Array.from(repos).sort(),
       statuses: Array.from(stats).sort(),
       assignees: Array.from(assigns).sort(),
+      priorities: Array.from(priors).sort(),
     };
   }, [tasks]);
 
@@ -59,6 +63,14 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
 
     if (filterStatus !== 'all') {
       filtered = filtered.filter((task) => task.status === filterStatus);
+    }
+
+    if (filterPriority !== 'all') {
+      if (filterPriority === 'none') {
+        filtered = filtered.filter((task) => !task.priority);
+      } else {
+        filtered = filtered.filter((task) => task.priority === filterPriority);
+      }
     }
 
     if (filterRepository !== 'all') {
@@ -85,7 +97,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
     }
 
     return filtered;
-  }, [tasks, filterState, filterType, filterStatus, filterRepository, filterAssignee, searchQuery, showOverdueOnly]);
+  }, [tasks, filterState, filterType, filterStatus, filterPriority, filterRepository, filterAssignee, searchQuery, showOverdueOnly]);
 
   const sortedTasks = useMemo(() => {
     return [...filteredTasks].sort((a, b) => {
@@ -118,7 +130,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
   // Reset to page 1 when filters change
   useMemo(() => {
     setCurrentPage(1);
-  }, [filterState, filterType, filterStatus, filterRepository, filterAssignee, searchQuery]);
+  }, [filterState, filterType, filterStatus, filterPriority, filterRepository, filterAssignee, searchQuery]);
 
   const handleSort = (field: keyof Task) => {
     if (sortField === field) {
@@ -139,6 +151,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
     setFilterState('all');
     setFilterType('all');
     setFilterStatus('all');
+    setFilterPriority('all');
     setFilterRepository('all');
     setFilterAssignee('all');
     setSearchQuery('');
@@ -148,6 +161,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
     filterState !== 'all' ||
     filterType !== 'all' ||
     filterStatus !== 'all' ||
+    filterPriority !== 'all' ||
     filterRepository !== 'all' ||
     filterAssignee !== 'all' ||
     searchQuery !== '';
@@ -244,6 +258,31 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
                 {statuses.map((status) => (
                   <option key={status} value={status}>
                     {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <label style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>Priority:</label>
+              <select
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  borderRadius: '6px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: '#fff',
+                  cursor: 'pointer',
+                  maxWidth: '120px',
+                }}
+              >
+                <option value="all">All</option>
+                <option value="none">None</option>
+                {priorities.map((priority) => (
+                  <option key={priority} value={priority}>
+                    {priority}
                   </option>
                 ))}
               </select>
@@ -378,12 +417,15 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
               <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
                 Status {sortField === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
+              <th onClick={() => handleSort('priority')} style={{ cursor: 'pointer' }}>
+                Priority {sortField === 'priority' && (sortDirection === 'asc' ? '↑' : '↓')}
+              </th>
               <th onClick={() => handleSort('repository')} style={{ cursor: 'pointer' }}>
                 Repository {sortField === 'repository' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th>Assignees</th>
               <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer' }}>
-                Due Date {sortField === 'dueDate' && (sortDirection === 'asc' ? '↑' : '↓')}
+                Tech Handoff ETA {sortField === 'dueDate' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th onClick={() => handleSort('createdAt')} style={{ cursor: 'pointer' }}>
                 Created {sortField === 'createdAt' && (sortDirection === 'asc' ? '↑' : '↓')}
@@ -393,7 +435,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
           <tbody>
             {paginatedTasks.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
                   No tasks found
                 </td>
               </tr>
@@ -413,6 +455,21 @@ export const TasksTable: React.FC<TasksTableProps> = ({ tasks, showOverdueOnly =
                     </span>
                   </td>
                   <td>{task.status || '-'}</td>
+                  <td>
+                    {task.priority ? (
+                      <span 
+                        className="badge" 
+                        style={{
+                          backgroundColor: task.priority === 'P0' ? '#fee2e2' : task.priority === 'P1' ? '#fef3c7' : '#e5e7eb',
+                          color: task.priority === 'P0' ? '#991b1b' : task.priority === 'P1' ? '#92400e' : '#374151'
+                        }}
+                      >
+                        {task.priority}
+                      </span>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td style={{ fontSize: '0.875rem' }}>{task.repository || '-'}</td>
                   <td>
                     {task.assignees.length > 0 ? (
