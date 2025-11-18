@@ -1,0 +1,12 @@
+specVersion: v1alpha
+serviceId: ghmonitoring-service
+location: us-central1
+schema:
+  source: ./
+  datasource:
+    postgresql:
+      database: ghmonitoring
+      cloudSql:
+        instanceId: ghmonitoring-instance
+connectorDirs:
+  - ./connector

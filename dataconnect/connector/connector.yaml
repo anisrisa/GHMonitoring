@@ -1,0 +1,6 @@
+connectorId: ghmonitoring-connector
+generate:
+  javascriptSdk:
+    outputDir: ../../backend/src/generated
+    package: "@ghmonitoring/dataconnect"
+    packageJsonDir: ../../backend

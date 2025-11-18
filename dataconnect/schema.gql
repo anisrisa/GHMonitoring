@@ -1,0 +1,105 @@
+# GitHub Monitoring Database Schema - GraphQL
+# Converted from PostgreSQL schema
+
+# Enums for type safety
+enum TaskType {
+  ISSUE
+  PULL_REQUEST
+  DRAFT_ISSUE
+}
+
+enum TaskState {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+# Tasks table: stores all GitHub issues and PRs from the project
+type Task @table(name: "tasks") {
+  id: UUID! @default(expr: "uuidV4()")
+  githubId: String! @col(name: "github_id") @unique
+  projectItemId: String! @col(name: "project_item_id") @unique
+  title: String!
+  number: Int!
+  type: TaskType!
+  state: TaskState!
+  status: String @col(name: "status")
+  priority: String
+  repository: String
+  createdAt: Timestamp! @col(name: "created_at")
+  updatedAt: Timestamp! @col(name: "updated_at")
+  dueDate: Timestamp @col(name: "due_date")
+  addedToProjectAt: Timestamp @col(name: "added_to_project_at")
+  lastSyncedAt: Timestamp! @col(name: "last_synced_at") @default(expr: "request.time")
+
+  # Relationships
+  assignments: [TaskAssignment!]! @sql(
+    query: "SELECT * FROM task_assignments WHERE task_id = $1.id"
+  )
+  snapshots: [TaskSnapshot!]! @sql(
+    query: "SELECT * FROM task_snapshots WHERE task_id = $1.id"
+  )
+}
+
+# Task assignments table: tracks who picked up which tasks
+type TaskAssignment @table(name: "task_assignments") {
+  id: UUID! @default(expr: "uuidV4()")
+  taskId: UUID! @col(name: "task_id")
+  assignee: String!
+  assignedAt: Timestamp! @col(name: "assigned_at") @default(expr: "request.time")
+  unassignedAt: Timestamp @col(name: "unassigned_at")
+
+  # Relationship
+  task: Task @sql(
+    query: "SELECT * FROM tasks WHERE id = $1.task_id"
+  )
+}
+
+# Task snapshots table: historical tracking of task states
+type TaskSnapshot @table(name: "task_snapshots") {
+  id: UUID! @default(expr: "uuidV4()")
+  snapshotDate: Date! @col(name: "snapshot_date") @default(expr: "request.time")
+  taskId: UUID! @col(name: "task_id")
+  state: TaskState!
+  status: String
+  isOverdue: Boolean! @col(name: "is_overdue") @default(value: false)
+
+  # Relationship
+  task: Task @sql(
+    query: "SELECT * FROM tasks WHERE id = $1.task_id"
+  )
+}
+
+# Daily statistics table: aggregated daily metrics
+type DailyStatistic @table(
+  name: "daily_statistics"
+  singular: "DailyStatistic"
+  plural: "DailyStatistics"
+) {
+  id: UUID! @default(expr: "uuidV4()")
+  snapshotDate: Date! @col(name: "snapshot_date") @unique
+  totalTasks: Int! @col(name: "total_tasks")
+  openTasks: Int! @col(name: "open_tasks")
+  closedTasks: Int! @col(name: "closed_tasks")
+  overdueTasks: Int! @col(name: "overdue_tasks")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+}
+
+# Indexes for performance
+extend type Task
+  @index(name: "idx_tasks_state", fields: ["state"])
+  @index(name: "idx_tasks_due_date", fields: ["dueDate"])
+  @index(name: "idx_tasks_repository", fields: ["repository"])
+  @index(name: "idx_tasks_status", fields: ["status"])
+  @index(name: "idx_tasks_priority", fields: ["priority"])
+
+extend type TaskAssignment
+  @index(name: "idx_task_assignments_task_id", fields: ["taskId"])
+  @index(name: "idx_task_assignments_assignee", fields: ["assignee"])
+
+extend type TaskSnapshot
+  @index(name: "idx_task_snapshots_task_id", fields: ["taskId"])
+  @index(name: "idx_task_snapshots_date", fields: ["snapshotDate"])
+
+extend type DailyStatistic
+  @index(name: "idx_daily_statistics_date", fields: ["snapshotDate"])

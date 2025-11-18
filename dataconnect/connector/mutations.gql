@@ -1,0 +1,139 @@
+# GraphQL Mutations for GitHub Monitoring
+
+# Upsert a single task (insert or update)
+mutation UpsertTask(
+  $githubId: String!
+  $projectItemId: String!
+  $title: String!
+  $number: Int!
+  $type: TaskType!
+  $state: TaskState!
+  $status: String
+  $priority: String
+  $repository: String
+  $createdAt: Timestamp!
+  $updatedAt: Timestamp!
+  $dueDate: Timestamp
+  $addedToProjectAt: Timestamp
+) @auth(level: NO_ACCESS) {
+  task_upsert(
+    data: {
+      githubId: $githubId
+      projectItemId: $projectItemId
+      title: $title
+      number: $number
+      type: $type
+      state: $state
+      status: $status
+      priority: $priority
+      repository: $repository
+      createdAt: $createdAt
+      updatedAt: $updatedAt
+      dueDate: $dueDate
+      addedToProjectAt: $addedToProjectAt
+    }
+  )
+}
+
+# Create task assignment
+mutation CreateTaskAssignment(
+  $taskId: UUID!
+  $assignee: String!
+) @auth(level: NO_ACCESS) {
+  task_assignment_insert(
+    data: {
+      taskId: $taskId
+      assignee: $assignee
+    }
+  )
+}
+
+# Unassign task (set unassigned_at)
+mutation UnassignTask(
+  $assignmentId: UUID!
+  $unassignedAt: Timestamp!
+) @auth(level: NO_ACCESS) {
+  task_assignment_update(
+    id: $assignmentId
+    data: {
+      unassignedAt: $unassignedAt
+    }
+  )
+}
+
+# Create task snapshot
+mutation CreateTaskSnapshot(
+  $snapshotDate: Date!
+  $taskId: UUID!
+  $state: TaskState!
+  $status: String
+  $isOverdue: Boolean!
+) @auth(level: NO_ACCESS) {
+  task_snapshot_insert(
+    data: {
+      snapshotDate: $snapshotDate
+      taskId: $taskId
+      state: $state
+      status: $status
+      isOverdue: $isOverdue
+    }
+  )
+}
+
+# Save daily statistics
+mutation SaveDailyStatistics(
+  $snapshotDate: Date!
+  $totalTasks: Int!
+  $openTasks: Int!
+  $closedTasks: Int!
+  $overdueTasks: Int!
+) @auth(level: NO_ACCESS) {
+  daily_statistic_upsert(
+    data: {
+      snapshotDate: $snapshotDate
+      totalTasks: $totalTasks
+      openTasks: $openTasks
+      closedTasks: $closedTasks
+      overdueTasks: $overdueTasks
+    }
+  )
+}
+
+# Delete old snapshots (cleanup)
+mutation DeleteOldSnapshots($beforeDate: Date!) @auth(level: NO_ACCESS) {
+  task_snapshot_deleteMany(
+    where: {
+      snapshotDate: { _lt: $beforeDate }
+    }
+  )
+}
+
+# Sync task assignments - remove and add
+mutation SyncTaskAssignments(
+  $taskId: UUID!
+  $currentAssignees: [String!]!
+) @auth(level: NO_ACCESS) @transaction {
+  # Unassign current assignments
+  task_assignment_updateMany(
+    where: {
+      _and: [
+        { taskId: { _eq: $taskId } }
+        { unassignedAt: { _is_null: true } }
+      ]
+    }
+    data: {
+      unassignedAt: { _expr: "now()" }
+    }
+  )
+
+  # Insert new assignments
+  # Note: This would need to be called separately for each assignee
+  # as insertMany with variables requires additional setup
+}
+
+# Batch insert tasks
+mutation BatchInsertTasks(
+  $tasks: [Task_Data!]!
+) @auth(level: NO_ACCESS) @transaction {
+  task_insertMany(data: $tasks)
+}

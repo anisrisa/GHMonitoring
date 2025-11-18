@@ -1,0 +1,164 @@
+# GraphQL Queries for GitHub Monitoring
+
+# Get all tasks with their current assignments
+query GetTasksWithAssignees @auth(level: NO_ACCESS) {
+  tasks(orderBy: [{ updatedAt: DESC }]) {
+    id
+    githubId
+    projectItemId
+    title
+    number
+    type
+    state
+    status
+    priority
+    repository
+    createdAt
+    updatedAt
+    dueDate
+    addedToProjectAt
+    lastSyncedAt
+    assignments(where: { unassignedAt: { _is_null: true } }) {
+      id
+      assignee
+      assignedAt
+    }
+  }
+}
+
+# Get overdue tasks
+query GetOverdueTasks @auth(level: NO_ACCESS) {
+  tasks(
+    where: {
+      _and: [
+        { state: { _eq: OPEN } }
+        { dueDate: { _lt: { _expr: "now()" } } }
+        { dueDate: { _is_not_null: true } }
+      ]
+    }
+    orderBy: [{ dueDate: ASC }]
+  ) {
+    id
+    githubId
+    title
+    number
+    dueDate
+    priority
+    status
+    repository
+    assignments(where: { unassignedAt: { _is_null: true } }) {
+      assignee
+    }
+  }
+}
+
+# Get historical statistics
+query GetHistoricalData($days: Int!) @auth(level: NO_ACCESS) {
+  statistics: daily_statistics(
+    where: {
+      snapshotDate: {
+        _gte: { _expr: "current_date - make_interval(days => $days)" }
+      }
+    }
+    orderBy: [{ snapshotDate: ASC }]
+  ) {
+    id
+    snapshotDate
+    totalTasks
+    openTasks
+    closedTasks
+    overdueTasks
+    createdAt
+  }
+}
+
+# Get a single task by ID
+query GetTaskById($id: UUID!) @auth(level: NO_ACCESS) {
+  task(id: $id) {
+    id
+    githubId
+    projectItemId
+    title
+    number
+    type
+    state
+    status
+    priority
+    repository
+    createdAt
+    updatedAt
+    dueDate
+    addedToProjectAt
+    assignments {
+      id
+      assignee
+      assignedAt
+      unassignedAt
+    }
+  }
+}
+
+# Get tasks by state
+query GetTasksByState($state: TaskState!) @auth(level: NO_ACCESS) {
+  tasks(
+    where: { state: { _eq: $state } }
+    orderBy: [{ updatedAt: DESC }]
+  ) {
+    id
+    githubId
+    title
+    number
+    type
+    state
+    status
+    priority
+    repository
+    updatedAt
+  }
+}
+
+# Get tasks by repository
+query GetTasksByRepository($repository: String!) @auth(level: NO_ACCESS) {
+  tasks(
+    where: { repository: { _eq: $repository } }
+    orderBy: [{ updatedAt: DESC }]
+  ) {
+    id
+    githubId
+    title
+    number
+    type
+    state
+    status
+    priority
+    repository
+    updatedAt
+  }
+}
+
+# Get assignees summary
+query GetAssigneesSummary @auth(level: NO_ACCESS) {
+  task_assignments(
+    where: { unassignedAt: { _is_null: true } }
+  ) {
+    assignee
+    taskId
+    assignedAt
+  }
+}
+
+# Get latest daily statistic
+query GetLatestStatistic @auth(level: NO_ACCESS) {
+  statistics: daily_statistics(
+    orderBy: [{ snapshotDate: DESC }]
+    limit: 1
+  ) {
+    id
+    snapshotDate
+    totalTasks
+    openTasks
+    closedTasks
+    overdueTasks
+    createdAt
+  }
+}
