@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { config } from './config';
 import { testConnection } from './database/connection';
 import { PollingService } from './services/polling-service';
@@ -21,21 +22,13 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api', routes);
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    name: 'GitHub Monitoring API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      stats: '/api/stats',
-      tasks: '/api/tasks',
-      overdue: '/api/tasks/overdue',
-      history: '/api/history',
-      refresh: 'POST /api/refresh',
-      pollingStatus: '/api/polling/status',
-    },
-  });
+// Serve static frontend files in production
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDistPath));
+
+// Serve index.html for all non-API routes (SPA fallback)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
 });
 
 // Error handling middleware

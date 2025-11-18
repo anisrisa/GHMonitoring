@@ -1,0 +1,31 @@
+runConfig:
+  runtime: nodejs20
+
+  # Build configuration
+  build:
+    # Install backend dependencies
+    - npm install --prefix backend
+    # Install frontend dependencies
+    - npm install --prefix frontend
+    # Build frontend for production
+    - npm run build --prefix frontend
+
+  # Start command - run the backend server
+  startCommand: npm start --prefix backend
+
+  # Environment variables (will be configured in Firebase Console)
+  env:
+    - variable: NODE_ENV
+      value: production
+    - variable: PORT
+      value: "8080"
+    - variable: DATABASE_URL
+      secret: DATABASE_URL
+    - variable: GITHUB_ORG
+      value: risa-labs-inc
+    - variable: GITHUB_PROJECT_NUMBER
+      value: "3"
+    - variable: POLLING_CRON_SCHEDULE
+      value: "0 * * * *"
+    - variable: LOG_LEVEL
+      value: info
